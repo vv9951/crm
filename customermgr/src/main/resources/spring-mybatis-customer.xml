@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-4.3.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop-4.3.xsd">
+
+
+    <!-- 指定扫描dao包下组件 -->
+    <context:component-scan base-package="com.huaxin.crm.**.dao"/>
+    <!-- 指定扫描service包下组件 -->
+    <context:component-scan base-package="com.huaxin.crm.**.service.impl"/>
+
+    <!-- 获取指定资源文件信息 -->
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+
+    <!-- 配置c3p0数据源 -->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <!-- 数据库连接信息 -->
+        <property name="driverClass" value="${jdbc.driver}"/>
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="user" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <!-- 数据源详细配置 -->
+        <property name="initialPoolSize" value="${jdbc.pool.initSize}"/>
+        <property name="maxPoolSize" value="${jdbc.pool.maxSize}"/>
+        <property name="minPoolSize" value="${jdbc.pool.minSize}"/>
+    </bean>
+
+    <!-- mybatis的SqlSessionFactory配置 -->
+   <!-- <bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">-->
+    <bean id="sessionFactory" class="com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean">
+        <!-- 注入数据源 -->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 指定mybatis全局配置文件位置 -->
+        <!--<property name="configLocation" value="classpath:mybatis-config.xml"/>-->
+        <!-- 扫描指定的包，为这些包下的Java类型指定别名 ,可在mybatis-config.xml中指定-->
+        <property name="typeAliasesPackage" value="com.huaxin.crm.**.entity"></property>
+        <!-- 指定映射文件位置，可在mybatis-config中指定 -->
+        <!-- <property name="mapperLocations"></property> -->
+        <property name="configuration" ref="myBatisConfiguration"/>
+        <!-- MP 全局配置注入 -->
+    <!--    <property name="globalConfig" ref="globalConfig"/>-->
+        <property name="plugins">
+            <array>
+                <!-- 分页插件配置 -->
+                <bean id="paginationInterceptor"
+                      class="com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor">
+                    <!-- 配置分页插件使用的方言 -->
+                    <property name="dialectType" value="postgresql"/>
+                </bean>
+                <!-- 乐观锁插件 -->
+                <!--<bean id="optimisticLockerInterceptor"-->
+                <!--class="com.baomidou.mybatisplus.plugins.OptimisticLockerInterceptor">-->
+                <!--</bean>-->
+                <!-- 性能拦截器，兼打印sql，不建议生产环境配置-->
+                <!--<bean id="performanceInterceptor"
+                      class="com.baomidou.mybatisplus.extension.plugins.PerformanceInterceptor"/>-->
+            </array>
+        </property>
+    </bean>
+
+    <bean  id="myBatisConfiguration" class="com.baomidou.mybatisplus.core.MybatisConfiguration">
+        <property name="cacheEnabled" value="true"/>
+        <property name="mapUnderscoreToCamelCase" value="true"/>
+    </bean>
+
+    <!-- 定义 MP 全局策略 -->
+  <!--  <bean id="globalConfig" class="com.baomidou.mybatisplus.entity.GlobalConfiguration">
+        &lt;!&ndash; 逻辑删除 定义下面3个参数&ndash;&gt;
+        <property name="sqlInjector" ref="logicSqlInjector"/>
+        <property name="logicDeleteValue" value="-1"/>
+        <property name="logicNotDeleteValue" value="1"/>
+        &lt;!&ndash; 全局ID类型： 0, "数据库ID自增"， 1, "用户输入ID", 2, "全局唯一ID", 3, "全局唯一ID"&ndash;&gt;
+        <property name="idType" value="0"/>
+        &lt;!&ndash; 2.1-gamma+ 数据库自动识别，无需配置数据库类型&ndash;&gt;
+        <property name="dbType" value="postgresql" />
+    </bean>-->
+
+    <!-- 逻辑删除Sql注入器-->
+    <!--<bean id="logicSqlInjector" class="com.baomidou.mybatisplus.mapper.LogicSqlInjector"/> -->
+
+
+    <bean id="paginationInterceptor" class="com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor">
+        <property name="dialectType" value="mysql"></property>
+    </bean>
+
+
+    <!-- Mapper接口扫描配置器，由MyBatis在运行时为这些接口提供代理实现 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 指定Mapper接口基包，如果多个可以使用;隔开 -->
+        <!-- 如果映射文件和Mapper接口在同一包下，可以省略sessionFactory中的mapperLocations配置 -->
+        <property name="basePackage" value="com.huaxin.crm.**.dao"/>
+    </bean>
+
+    <!-- 指定事务管理器 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <!-- 注入数据源 -->
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- 配置事务策略 -->
+    <tx:advice id="transactionAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="add*" propagation="REQUIRED"/>
+            <tx:method name="append*" propagation="REQUIRED"/>
+            <tx:method name="insert*" propagation="REQUIRED"/>
+            <tx:method name="save*" propagation="REQUIRED"/>
+            <tx:method name="update*" propagation="REQUIRED"/>
+            <tx:method name="modify*" propagation="REQUIRED"/>
+            <tx:method name="edit*" propagation="REQUIRED"/>
+            <tx:method name="delete*" propagation="REQUIRED"/>
+            <tx:method name="remove*" propagation="REQUIRED"/>
+
+            <tx:method name="get*" propagation="SUPPORTS" read-only="true"/>
+            <tx:method name="count*" propagation="SUPPORTS" read-only="true"/>
+            <tx:method name="find*" propagation="SUPPORTS" read-only="true"/>
+            <tx:method name="load*" propagation="SUPPORTS" read-only="true"/>
+            <tx:method name="search*" propagation="SUPPORTS" read-only="true"/>
+            <tx:method name="datagrid*" propagation="SUPPORTS" read-only="true"/>
+
+            <tx:method name="*" propagation="SUPPORTS"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <!-- 配置事务切面 -->
+    <aop:config>
+        <aop:pointcut expression="execution(* com.huaxin.crm.*.service.impl.*.*(..))" id="transactionPointcut"/>
+        <aop:advisor advice-ref="transactionAdvice" pointcut-ref="transactionPointcut"/>
+    </aop:config>
+
+</beans>
