@@ -16,4 +16,6 @@ public interface CustomerServiceIf {
     boolean delete(Integer uuid);
 
     Customer findById(Integer uuid);
+
+    Customer findByCustomerId(String customerId);
 }

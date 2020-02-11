@@ -1,5 +1,6 @@
 package com.huaxin.crm.customermgr.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.huaxin.crm.customermgr.dao.CustomerDAO;
@@ -48,6 +49,14 @@ public class CustomerServiceImpl implements CustomerServiceIf {
     @Override
     public Customer findById(Integer uuid) {
         Customer customer = dao.selectById(uuid);
+        return customer;
+    }
+
+    @Override
+    public Customer findByCustomerId(String customerId) {
+        QueryWrapper qw = new QueryWrapper<Customer>();
+        qw.eq("customerId",customerId);
+        Customer customer = dao.selectOne(qw);
         return customer;
     }
 

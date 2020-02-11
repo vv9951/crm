@@ -64,4 +64,9 @@ public class CustomerController {
         boolean b = service.delete(uuid);
         return b ? "success" : "fail";
     }
+
+    @RequestMapping("/test")
+    public String test(){
+        return "";
+    }
 }

@@ -10,6 +10,7 @@
         <module name="common" />
         <module name="crmweb" />
         <module name="customermgr" />
+        <module name="front" />
         <module name="goodsmgr" />
         <module name="goodsmgrweb" />
         <module name="ordermgr" />
